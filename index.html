@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pause - Moroccan Visionary</title>
+    
+    <!-- Enhanced Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.2.1/tilt.jquery.min.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'spot-black': '#121212',
+                        'spot-dark': '#282828',
+                        'neon-green': '#00ff94',
+                        'deep-purple': '#4a148c',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 20s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Orbitron:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #00ff94;
+            --secondary-color: #4a148c;
+        }
+
+        .font-russo { font-family: 'Russo One', sans-serif; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .cyber-border {
+            position: relative;
+            border: 2px solid var(--primary-color);
+            overflow: hidden;
+        }
+
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 255, 148, 0.4),
+                transparent
+            );
+            animation: cyber-shine 3s infinite;
+        }
+
+        @keyframes cyber-shine {
+            100% { left: 100%; }
+        }
+
+        .rotating-element {
+            animation: rotate3D 20s infinite linear;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rotate3D {
+            from { transform: rotateY(0deg) rotateX(20deg); }
+            to { transform: rotateY(360deg) rotateX(20deg); }
+        }
+
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px var(--primary-color),
+                         0 0 20px var(--primary-color),
+                         0 0 30px var(--primary-color);
+        }
+
+        .cyber-grid {
+            background-image: linear-gradient(rgba(0, 255, 148, 0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(0, 255, 148, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .track-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .track-card:hover {
+            transform: translateZ(20px) rotateX(10deg);
+        }
+
+        .scroll-indicator {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body class="bg-spot-black text-white overflow-x-hidden" x-data="mainApp()" x-init="init()">
+    <!-- Background Animation Container -->
+    <div id="background-animation" class="cyber-grid"></div>
+
+    <!-- Loading Screen -->
+    <div x-show="loading" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div class="text-center">
+            <div class="relative w-40 h-40">
+                <div class="absolute inset-0 rotating-element">
+                    <div class="w-full h-full rounded-full border-4 border-neon-green opacity-20"></div>
+                </div>
+                <div class="absolute inset-2 rotating-element" style="animation-direction: reverse;">
+                    <div class="w-full h-full rounded-full border-4 border-deep-purple opacity-40"></div>
+                </div>
+                <div class="absolute inset-4 rotating-element">
+                    <div class="w-full h-full rounded-full border-4 border-neon-green opacity-60"></div>
+                </div>
+            </div>
+            <p class="mt-8 text-2xl font-orbitron neon-text">Loading<span class="animate-pulse">...</span></p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div x-show="!loading" x-cloak>
+        <!-- Navigation -->
+        <nav class="fixed w-full z-40 glass">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-3xl font-orbitron neon-text">Pause</h1>
+                    <div class="hidden md:flex space-x-12">
+                        <template x-for="item in ['Profile', 'Music', 'Stats']" :key="item">
+                            <a :href="'#' + item.toLowerCase()" 
+                               class="relative group font-orbitron">
+                                <span class="hover:text-neon-green transition-colors duration-300" x-text="item"></span>
+                                <span class="absolute -bottom-2 left-0 w-0 h-0.5 bg-neon-green transition-all duration-300 group-hover:w-full"></span>
+                            </a>
+                        </template>
+                    </div>
+                    <button @click="mobileMenu = !mobileMenu" class="md:hidden cyber-border p-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="profile" class="min-h-screen pt-20 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-deep-purple via-spot-black to-spot-black opacity-50"></div>
+            
+            <!-- 3D Rotating Profile -->
+            <div class="relative z-10 container mx-auto px-4 py-20">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-16">
+                    <div class="relative group" x-data="{ rotation: { x: 0, y: 0 } }" 
+                         @mousemove="handleMouseMove($event)">
+                        <div class="relative w-80 h-80 md:w-96 md:h-96 transform-gpu"
+                             :style="`transform: rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`">
+                            <img :src="artist.images[0]?.url" 
+                                 alt="Pause"
+                                 class="w-full h-full rounded-full object-cover cyber-border">
+                            
+                            <!-- Orbital Rings -->
+                            <div class="absolute inset-0 rotating-element pointer-events-none">
+                                <div class="w-full h-full rounded-full border-2 border-neon-green opacity-20"></div>
+                            </div>
+                            <div class="absolute inset-4 rotating-element pointer-events-none" style="animation-direction: reverse;">
+                                <div class="w-full h-full rounded-full border-2 border-deep-purple opacity-30"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Stats -->
+                        <div class="absolute -right-20 top-1/4 glass p-4 rounded-xl animate-float">
+                            <p class="font-orbitron">
+                                <span class="text-neon-green" x-text="formatNumber(monthlyListeners)"></span>
+                                <span class="text-sm">Monthly Listeners</span>
+                            </p>
+                        </div>
+                        
+                        <div class="absolute -left-20 bottom-1/4 glass p-4 rounded-xl animate-float" style="animation-delay: 1s;">
+                            <p class="font-orbitron">
+                                <span class="text-neon-green" x-text="artist.popularity + '%'"></span>
+                                <span class="text-sm">Popularity</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Artist Info -->
+                    <div class="text-center md:text-left max-w-lg">
+                        <h2 class="text-6xl md:text-8xl font-orbitron mb-8 neon-text">Pause</h2>
+                        <div class="glass p-8 rounded-xl space-y-6">
+                            <p class="text-xl leading-relaxed">
+                                Pioneering the future of Moroccan hip-hop with innovative sounds and powerful lyrics.
+                            </p>
+                            <div class="flex justify-center md:justify-start gap-6">
+                                <div class="text-center">
+                                    <p class="text-3xl font-orbitron text-neon-green" 
+                                       x-text="formatNumber(artist.followers?.total)"></p>
+                                    <p class="text-sm opacity-80">Followers</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-3xl font-orbitron text-neon-green" 
+                                       x-text="artist.popularity + '%'"></p>
+                                    <p class="text-sm opacity-80">Popularity</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Top Tracks Section -->
+        <section id="music" class="py-20 relative overflow-hidden">
+            <div class="cyber-grid absolute inset-0 opacity-10"></div>
+            <div class="container mx-auto px-4">
+                <h2 class="text-5xl font-orbitron mb-16 text-center neon-text">Popular Tracks</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <template x-for="(track, index) in topTracks" :key="track.id">
+                        <div class="track-card glass p-6 rounded-xl hover:shadow-2xl hover:shadow-neon-green/20 transition-all duration-500"
+                             :style="`animation-delay: ${index * 0.1}s`">
+                            <div class="relative group">
+                                <img :src="track.album.images[0].url" 
+                                     :alt="track.name"
+                                     class="w-full aspect-square rounded-lg transition-transform duration-500 group-hover:scale-105">
+                                
+                                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-bold truncate" x-text="track.name"></h3>
+                                        <p class="text-sm text-gray-300" x-text="formatNumber(track.popularity) + ' plays'"></p>
+                                    </div>
+                                    <button @click="playPreview(track.preview_url)"
+                                            class="bg-neon-green text-black p-3 rounded-full hover:scale-110 transition-transform">
+                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 space-y-2">
+                                <div class="h-1 bg-gray-700 rounded-full">
+                                    <div class="h-full bg-neon-green rounded-full" 
+                                         :style="`width: ${track.popularity}%`"></div>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Popularity</span>
+                                    <span class="text-neon-green" x-text="track.popularity + '%'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Albums Section -->
+        <section class="py-20 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-spot-dark to-spot-black"></div>
+            <div class="container mx-auto px-4 relative z-10">
+                <h2 class="text-5xl font-orbitron mb-16 text-center neon-text">Discography</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <template x-for="(album, index) in albums" :key="album.id">
+                        <div class="album-card glass p-6 rounded-xl transform transition-all duration-500 hover:translate-y--4"
+                             :style="`animation-delay: ${index * 0.2}s`">
+                            <div class="relative group">
+                                <img :src="album.images[0].url" 
+                                     :alt="album.name"
+                                     class="w-full rounded-lg shadow-xl transition-all duration-500 group-hover:scale-105">
+                                
+                                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                                    <a :href="album.external_urls.spotify" 
+                                       target="_blank"
+                                       class="bg-neon-green text-black px-6 py-3 rounded-full font-bold transform -translate-y-10 group-hover:translate-y-0 transition-all duration-500">
+                                        Listen on Spotify
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 space-y-2">
+                                <h3 class="text-xl font-bold" x-text="album.name"></h3>
+                                <p class="text-gray-400" x-text="formatDate(album.release_date)"></p>
+                                <div class="flex items-center space-x-2">
+                                    <span class="h-2 w-2 bg-neon-green rounded-full"></span>
+                                    <span class="text-sm text-neon-green" x-text="album.total_tracks + ' Tracks'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section id="stats" class="py-20 relative overflow-hidden">
+            <div class="cyber-grid absolute inset-0 opacity-10"></div>
+            <div class="container mx-auto px-4">
+                <h2 class="text-5xl font-orbitron mb-16 text-center neon-text">Analytics</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <template x-for="(stat, index) in [
+                        { label: 'Monthly Listeners', value: monthlyListeners },
+                        { label: 'Popularity Score', value: artist.popularity, suffix: '%' },
+                        { label: 'Total Followers', value: artist.followers?.total }
+                    ]">
+                        <div class="glass p-8 rounded-xl text-center transform hover:scale-105 transition-all duration-300"
+                             :style="`animation-delay: ${index * 0.3}s`">
+                            <h3 class="text-2xl font-orbitron text-neon-green mb-4" x-text="stat.label"></h3>
+                            <p class="text-4xl font-bold" x-text="formatNumber(stat.value) + (stat.suffix || '')"></p>
+                            
+                            <div class="mt-4">
+                                <div class="h-1 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-neon-green rounded-full animate-pulse"
+                                         :style="`width: ${Math.min(100, (stat.value / (stat.suffix ? 100 : monthlyListeners)) * 100)}%`"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-spot-black py-12 relative overflow-hidden">
+            <div class="cyber-grid absolute inset-0 opacity-5"></div>
+            <div class="container mx-auto px-4 text-center relative z-10">
+                <div class="flex justify-center space-x-12 mb-8">
+                    <template x-for="social in ['Spotify', 'Instagram', 'YouTube']">
+                        <a href="#" 
+                           class="text-neon-green hover:text-white transition-colors duration-300 relative group">
+                            <span x-text="social"></span>
+                            <span class="absolute -bottom-2 left-0 w-0 h-0.5 bg-neon-green transition-all duration-300 group-hover:w-full"></span>
+                        </a>
+                    </template>
+                </div>
+                <p class="text-gray-400">&copy; 2024 Pause. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Audio Player -->
+    <div x-show="currentPreview" 
+         x-transition
+         class="fixed bottom-0 left-0 right-0 bg-spot-dark p-4 border-t border-neon-green/20">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button @click="stopPreview" 
+                        class="text-neon-green hover:text-white transition-colors duration-300">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 002 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 002 0V8a1 1 0 00-1-1z"/>
+                    </svg>
+                </button>
+                <div>
+                    <p class="text-sm text-gray-400">Now Playing</p>
+                    <p class="text-neon-green" x-text="currentTrack?.name"></p>
+                </div>
+            </div>
+            <div class="flex-1 mx-8">
+                <div class="h-1 bg-gray-700 rounded-full">
+                    <div class="h-full bg-neon-green rounded-full transition-all duration-300"
+                         x-ref="progressBar"></div>
+                </div>
+            </div>
+            <audio id="audioPlayer" @ended="stopPreview" @timeupdate="updateProgress"></audio>
+        </div>
+    </div>
+    <script>
+        function mainApp() {
+            return {
+                loading: true,
+                mobileMenu: false,
+                artist: {},
+                topTracks: [],
+                albums: [],
+                monthlyListeners: 0,
+                currentPreview: null,
+                currentTrack: null,
+                token: null,
+
+                async init() {
+                    this.loading = true;
+                    this.initBackgroundAnimation();
+                    await this.getSpotifyToken();
+                    await Promise.all([
+                        this.getArtistData(),
+                        this.getTopTracks(),
+                        this.getAlbums()
+                    ]);
+                    this.initTiltEffect();
+                    this.loading = false;
+                },
+
+                initBackgroundAnimation() {
+                    VANTA.NET({
+                        el: "#background-animation",
+                        mouseControls: true,
+                        touchControls: true,
+                        gyroControls: false,
+                        minHeight: 200.00,
+                        minWidth: 200.00,
+                        scale: 1.00,
+                        scaleMobile: 1.00,
+                        color: 0x00ff94,
+                        backgroundColor: 0x121212,
+                        points: 15.00,
+                        maxDistance: 20.00,
+                        spacing: 16.00
+                    });
+                },
+
+                initTiltEffect() {
+                    $('.track-card, .album-card').tilt({
+                        maxTilt: 15,
+                        scale: 1.05,
+                        speed: 400,
+                        glare: true,
+                        maxGlare: 0.3
+                    });
+                },
+
+                handleMouseMove(event) {
+                    const card = event.currentTarget;
+                    const rect = card.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    this.rotation = {
+                        x: rotateX,
+                        y: rotateY
+                    };
+                },
+
+                async getSpotifyToken() {
+                    const clientId = '993dbf1dea1c4682b6d8302d0daefae5';
+                    const clientSecret = '51a63f7bb29c442aab5ce073e00e8d52';
+                    
+                    try {
+                        const response = await fetch('https://accounts.spotify.com/api/token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+                            },
+                            body: 'grant_type=client_credentials'
+                        });
+                        
+                        const data = await response.json();
+                        this.token = data.access_token;
+                    } catch (error) {
+                        console.error('Error getting token:', error);
+                    }
+                },
+
+                async getArtistData() {
+                    const artistId = '1ZwAwymAUb2hTFTMxmNbL5';
+                    try {
+                        const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        });
+                        this.artist = await response.json();
+                        this.monthlyListeners = Math.floor(this.artist.followers.total * 1.5);
+                    } catch (error) {
+                        console.error('Error getting artist data:', error);
+                    }
+                },
+
+                async getTopTracks() {
+                    const artistId = '1ZwAwymAUb2hTFTMxmNbL5';
+                    try {
+                        const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=MA`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        });
+                        const data = await response.json();
+                        this.topTracks = data.tracks.map(track => ({
+                            ...track,
+                            popularity: track.popularity || Math.floor(Math.random() * 100)
+                        }));
+                    } catch (error) {
+                        console.error('Error getting top tracks:', error);
+                    }
+                },
+
+                async getAlbums() {
+                    const artistId = '1ZwAwymAUb2hTFTMxmNbL5';
+                    try {
+                        const response = await fetch(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album,single`, {
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`
+                            }
+                        });
+                        const data = await response.json();
+                        this.albums = data.items;
+                    } catch (error) {
+                        console.error('Error getting albums:', error);
+                    }
+                },
+
+                playPreview(url) {
+                    if (!url) return;
+                    const audio = document.getElementById('audioPlayer');
+                    
+                    if (this.currentPreview === url) {
+                        if (audio.paused) {
+                            audio.play();
+                        } else {
+                            audio.pause();
+                        }
+                    } else {
+                        audio.src = url;
+                        audio.play();
+                        this.currentPreview = url;
+                        this.currentTrack = this.topTracks.find(track => track.preview_url === url);
+                    }
+                },
+
+                stopPreview() {
+                    const audio = document.getElementById('audioPlayer');
+                    audio.pause();
+                    this.currentPreview = null;
+                    this.currentTrack = null;
+                },
+
+                updateProgress() {
+                    const audio = document.getElementById('audioPlayer');
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    this.$refs.progressBar.style.width = `${progress}%`;
+                },
+
+                formatNumber(num) {
+                    if (!num) return '0';
+                    if (num >= 1000000) {
+                        return (num / 1000000).toFixed(1) + 'M';
+                    }
+                    if (num >= 1000) {
+                        return (num / 1000).toFixed(1) + 'K';
+                    }
+                    return new Intl.NumberFormat().format(num);
+                },
+
+                formatDate(date) {
+                    return new Date(date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                }
+            }
+        }
+
+        // Intersection Observer for animation
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            document.querySelectorAll('.track-card, .album-card').forEach(el => {
+                el.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700');
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
